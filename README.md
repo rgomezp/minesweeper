@@ -1,2 +1,2 @@
 # minesweeper
-A recreation of the original game
+A recreation of the original game Minesweeper made from scratch!
