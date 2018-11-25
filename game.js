@@ -1,5 +1,11 @@
 "use strict";
 
+
+// ================ G A M E ==================
+// ===========================================
+// ===========================================
+
+
 // CONSTRUCTOR
 // --------------------------------------------
 function Minesweeper(row, col, mine_count){
@@ -74,6 +80,10 @@ function draw_board(){
           var square = $(`<div id="col-${col_count}" class="square"><button class='mine-btn'><img src='img/flag.png'/></button></div>`);
           $(`#row-${row_count}`).append(square);
           break;
+        case "f":
+          var square = $(`<div id="col-${col_count}" class="square"><button><img src='img/flag.png'/></button></div>`);
+          $(`#row-${row_count}`).append(square);
+          break;
         default:
           var color;
           if(cell == '1') color = '#D48A6A';
@@ -104,6 +114,8 @@ Minesweeper.prototype.draw_board = draw_board;
 function count_mines(row, col){
   var start = [row-1, col-1];
   var count = 0;
+
+  debugger;
 
   for(var i=start[0]; i<start[0]+3; i++){
     for(var j=start[1]; j<start[1]+3; j++){
@@ -162,6 +174,17 @@ function start_visited(){
 // ============================================ //
 // ==== BEGIN HELPER FUNCTIONS =============== //
 
+function check_game_status(){
+    console.log(game.board);
+    var row = game.row;
+    var col = game.col;
+    for(var i=0; i<row; i++){
+      for(var j=0; j<col; j++){
+        if(game.board[i][j] == "M") return false;
+      }
+    }
+    return true;
+}
 
 // SET UP CLICK HANDLERS
 // --------------------------------------------
@@ -183,43 +206,37 @@ function click_handlers(){
     if($(this).attr('class')=='mine-btn'){
       $(this).empty();
       $('.mine-btn').html("<img src='img/mine.png'/>")
-      var audio = document.getElementById("audio");
-      audio.play();
       setTimeout(function() {
         alert('You lose!');
       }, 1000);
     }else{
       game.count_mines(row_id, col_id);
+      if(check_game_status()) alert('You win!');
     }
   });
 
-  // FLAG TOGGLER CLICK HANDLER -----------------------------------------------
-  $('#flag-btn').on('click', function(event){
-    if(flag_set == 0){
-      $(this).css('background-color', 'yellow');
-      // change click handlers
-      $('#root').undelegate('.square > button', 'click');
-      $('#root').on('click', '.square > button', function(event){
 
-        // Get coordinates
-        var col_id = $(this).parent().attr('id');
-        var row_id = $(this).closest('.row').attr('id');
-        col_id = col_id.split('-')[1];
-        row_id = row_id.split('-')[1];
+// --- Right click (FLAG SETTING) ---
+  $('#root').on('contextmenu', '.square > button', function(event){
+    event.preventDefault();
+    $(this).empty();
+    $(this).html("<img src='img/flag.png'/>");
 
-        game.board[row_id][col_id] = 'Mf';
+    // Get coordinates
+    var col_id = $(this).parent().attr('id');
+    var row_id = $(this).closest('.row').attr('id');
+    col_id = col_id.split('-')[1];
+    row_id = row_id.split('-')[1];
 
-        $(this).empty();
-        $(this).html("<img src='img/flag.png'/>");
-      });
-      flag_set = 1;
-    }else{
-      $(this).css('background-color', 'grey');
-      // change click handlers
-      $('#root').undelegate('.square > button', 'click');
-      click_handlers();
-      flag_set = 0;
+    if(game.board[row_id][col_id] == '?'){
+      game.board[row_id][col_id] = 'f';
+    }else if(game.board[row_id][col_id] == 'M'){
+      game.board[row_id][col_id] = 'Mf';
     }
+
+    $(this).empty();
+    $(this).html("<img src='img/flag.png'/>");
+    if(check_game_status()) alert('You win!');
   });
 
   // GRID SIZE SUBMIT BUTTON CLICK HANDLER
@@ -233,7 +250,7 @@ function click_handlers(){
     }
 
     // calculate mine count
-    var mine_count = Math.floor(x*y/5);
+    var mine_count = Math.floor(x*y/6);
 
     start_game(x, y, mine_count);
   });
@@ -249,7 +266,7 @@ function click_handlers(){
 var game;
 var flag_set = 0;   // Flag button pressed flag
 
-function start_game(x=16, y=21, m=67){
+function start_game(x=10, y=15, m=30){
   //Minesweeper class
   game = new Minesweeper(x, y, m);
   game.build_board();
@@ -261,6 +278,10 @@ function start_game(x=16, y=21, m=67){
 // ON PAGE LOAD, START GAME
 // --------------------------------------------
 $(document).ready(function(){
-  $('body').append("<audio id='audio' src='sounds/bomb.mp3'></audio>");
+
   start_game();
 });
+
+// ================ END GAME ==================
+// ===========================================
+// ===========================================
